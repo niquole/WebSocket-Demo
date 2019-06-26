@@ -10,12 +10,14 @@
 <div id="app">
 <div class="container">
      <h1>WebSockets Demo</h1>
-     <div class="sent" v-for="item in messages"> sent:
-         <span class="message" >{{ item }}</span>
+     <div v-for="(item, index) in messages">
+     <div class="sent" v-if="item.type == 'sent'"> sent:
+         <span class="message" >{{ item.content }}</span>
      </div>
-     <div class="received"> received:
-         <span class="message">{{  }}</span>
+     <div class="received" v-if="item.type == 'received'"> received:
+         <span class="message" >{{ item.content }}</span>
      </div>
+    </div>
       <textarea name="textarea" id="textarea" placeholder="Write your message here..." v-model="message"></textarea>
       <button type="submit" id="send" @click="sendit">Send Message</button>
 </div>
@@ -24,74 +26,6 @@
 </div>
 
 
-    <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            margin: 0;
-            background-color: #000;
-        }
-        .container {
-            border-top: 10px solid rgb(90, 221, 90);          
-            width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-        }
-        h1 {
-            margin: 15px;  
-            font-weight: 700;     
-        }
-        .sent {
-            margin: 15px;
-            padding: 8px;
-            background-color: rgb(241, 240, 240);
-            color: rgb(110, 109, 109);  
-            font-size: 10px; 
-            text-transform: uppercase;   
-            font-weight: 600;   
-        }
-        span.message {
-            color: #000;
-            font-size: 14px;
-            text-transform: none;
-            font-weight: 300;
-        }
-        .received {
-            padding: 8px;            
-            margin: 15px;   
-            color: rgb(102, 101, 101); 
-            font-size: 10px;   
-            text-transform: uppercase;      
-            font-weight: 600;         
-                    
-        }
-        #send {
-            background-color: #4CAF50; /* Green */
-            border: none;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-            margin: 20px;
-            font-weight: 600;   
-            transition: .3s;
-            
-        }
-
-        #send:hover {
-            box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
-        }
-
-        #textarea {
-            margin-left: 15px;
-            width: 93%;
-            min-width: 93%;
-            max-width: 93%;
-            height: 200px;
-            border-radius: 5px;
-        }
-    </style>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="js/client.js"></script>
 <script>
@@ -101,6 +35,7 @@
             return {
                 message: "",
                 messages: [],
+                obj: {},
                 socket: new WebSocket('ws://localhost:3000')
                 
             }
@@ -115,8 +50,14 @@
                 console.log('Disconnected from Websocket');
             })
 
-                this.socket.addEventListener('message',(message) =>{
-                this.messages.push(message.data);
+                this.socket.addEventListener('message', message =>{
+                this.obj = {
+                    content: message.data,
+                    type: 'received'
+                };
+                
+                this.messages.push(this.obj);
+                this.message = "";
 
             })
 
@@ -125,7 +66,12 @@
                 })
         },
         methods: {
-        sendit: function() {
+        sendit: function()  {
+            this.obj = {
+                content: this.message,
+                type: 'sent'
+            };
+            this.messages.push(this.obj);            
             this.socket.send(this.message);
         }
     }
@@ -134,5 +80,73 @@
     })
     
     </script>
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                margin: 0;
+                background-color: #000;
+            }
+            .container {
+                border-top: 10px solid rgb(90, 221, 90);          
+                width: 600px;
+                margin: 0 auto;
+                background-color: #fff;
+            }
+            h1 {
+                margin: 15px;  
+                font-weight: 700;     
+            }
+            .sent {
+                margin: 15px;
+                padding: 8px;
+                background-color: rgb(241, 240, 240);
+                color: rgb(110, 109, 109);  
+                font-size: 10px; 
+                text-transform: uppercase;   
+                font-weight: 600;   
+            }
+            span.message {
+                color: #000;
+                font-size: 14px;
+                text-transform: none;
+                font-weight: 300;
+            }
+            .received {
+                padding: 8px;            
+                margin: 15px;   
+                color: rgb(102, 101, 101); 
+                font-size: 10px;   
+                text-transform: uppercase;      
+                font-weight: 600;         
+                        
+            }
+            #send {
+                background-color: #4CAF50; /* Green */
+                border: none;
+                color: white;
+                padding: 15px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 14px;
+                margin: 20px;
+                font-weight: 600;   
+                transition: .3s;
+                
+            }
+    
+            #send:hover {
+                box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+            }
+    
+            #textarea {
+                margin-left: 15px;
+                width: 93%;
+                min-width: 93%;
+                max-width: 93%;
+                height: 200px;
+                border-radius: 5px;
+            }
+        </style>
 </body>
 </html>
